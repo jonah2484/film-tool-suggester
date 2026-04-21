@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>CineAI — Script-based Tool Suggester</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0d0d0f;
+      --surface: #16161a;
+      --surface2: #1e1e24;
+      --border: rgba(255,255,255,0.08);
+      --border-hover: rgba(255,255,255,0.18);
+      --text: #f0eeea;
+      --muted: #888690;
+      --accent: #c8a97e;
+      --accent2: #7e9fc8;
+      --accent3: #9ec87e;
+      --radius: 12px;
+      --radius-sm: 8px;
+    }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      line-height: 1.6;
+    }
+
+    /* NAV */
+    nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1.2rem 2rem;
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      background: rgba(13,13,15,0.92);
+      backdrop-filter: blur(12px);
+      z-index: 100;
+    }
+    .logo {
+      font-family: 'DM Serif Display', serif;
+      font-size: 22px;
+      color: var(--accent);
+      letter-spacing: -0.3px;
+    }
+    .logo span { color: var(--text); }
+    .nav-tag {
+      font-size: 11px;
+      font-weight: 500;
+      padding: 4px 12px;
+      border-radius: 999px;
+      background: rgba(200,169,126,0.12);
+      color: var(--accent);
+      border: 1px solid rgba(200,169,126,0.25);
+    }
+
+    /* HERO */
+    .hero {
+      text-align: center;
+      padding: 4rem 1.5rem 3rem;
+      max-width: 680px;
+      margin: 0 auto;
+    }
+    .hero-eyebrow {
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 1rem;
+    }
+    .hero h1 {
+      font-family: 'DM Serif Display', serif;
+      font-size: clamp(32px, 5vw, 48px);
+      line-height: 1.15;
+      color: var(--text);
+      margin-bottom: 1rem;
+    }
+    .hero h1 em { color: var(--accent); font-style: italic; }
+    .hero p {
+      font-size: 16px;
+      color: var(--muted);
+      max-width: 480px;
+      margin: 0 auto;
+    }
+
+    /* MAIN CARD */
+    .main-card {
+      max-width: 780px;
+      margin: 0 auto 4rem;
+      padding: 0 1.5rem;
+    }
+
+    .input-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.5rem;
+      margin-bottom: 1rem;
+    }
+
+    .input-label {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--muted);
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+      display: block;
+    }
+
+    textarea {
+      width: 100%;
+      height: 180px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 14px 16px;
+      font-size: 14px;
+      font-family: 'DM Sans', sans-serif;
+      color: var(--text);
+      resize: vertical;
+      line-height: 1.7;
+      transition: border-color 0.2s;
+    }
+    textarea::placeholder { color: var(--muted); opacity: 0.6; }
+    textarea:focus { outline: none; border-color: rgba(200,169,126,0.4); }
+
+    .upload-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 10px;
+    }
+    .upload-btn {
+      font-size: 13px;
+      padding: 7px 16px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-hover);
+      background: transparent;
+      color: var(--muted);
+      cursor: pointer;
+      font-family: 'DM Sans', sans-serif;
+      transition: all 0.15s;
+    }
+    .upload-btn:hover { color: var(--text); border-color: var(--border-hover); background: var(--surface2); }
+    .upload-note { font-size: 12px; color: var(--muted); }
+
+    .btn-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .btn-primary {
+      flex: 1;
+      min-width: 180px;
+      padding: 13px 24px;
+      background: var(--accent);
+      color: #1a1208;
+      border: none;
+      border-radius: var(--radius-sm);
+      font-size: 15px;
+      font-weight: 500;
+      font-family: 'DM Sans', sans-serif;
+      cursor: pointer;
+      transition: opacity 0.15s, transform 0.1s;
+    }
+    .btn-primary:hover { opacity: 0.9; }
+    .btn-primary:active { transform: scale(0.98); }
+    .btn-primary:disabled { opacity: 0.45; cursor: not-allowed; }
+
+    .btn-secondary {
+      padding: 13px 20px;
+      background: transparent;
+      color: var(--muted);
+      border: 1px solid var(--border-hover);
+      border-radius: var(--radius-sm);
+      font-size: 14px;
+      font-family: 'DM Sans', sans-serif;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .btn-secondary:hover { color: var(--text); background: var(--surface2); }
+
+    /* LOADING */
+    .loading {
+      display: none;
+      align-items: center;
+      gap: 12px;
+      padding: 2rem 0 1rem;
+    }
+    .loading.visible { display: flex; }
+    .spinner {
+      width: 20px; height: 20px;
+      border: 2px solid var(--border-hover);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loading-text { font-size: 14px; color: var(--muted); }
+
+    /* RESULTS */
+    #results { margin-top: 1.5rem; }
+
+    .analysis-strip {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.2rem 1.5rem;
+      margin-bottom: 1.2rem;
+    }
+    .strip-label {
+      font-size: 11px;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--muted);
+      margin-bottom: 10px;
+    }
+    .tags { display: flex; flex-wrap: wrap; gap: 7px; }
+    .tag {
+      padding: 4px 12px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 500;
+    }
+    .tag-genre { background: rgba(200,169,126,0.12); color: var(--accent); border: 1px solid rgba(200,169,126,0.25); }
+    .tag-mood { background: rgba(126,159,200,0.12); color: var(--accent2); border: 1px solid rgba(126,159,200,0.25); }
+    .tag-feat { background: rgba(158,200,126,0.12); color: var(--accent3); border: 1px solid rgba(158,200,126,0.25); }
+
+    .summary-line {
+      border-left: 2px solid var(--accent);
+      padding: 8px 14px;
+      background: rgba(200,169,126,0.05);
+      border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+      font-size: 14px;
+      color: var(--muted);
+      margin-bottom: 1.5rem;
+      line-height: 1.6;
+    }
+
+    .section-head {
+      font-size: 12px;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: var(--muted);
+      margin: 1.8rem 0 0.8rem;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .section-head::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+    .tool-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 10px;
+    }
+
+    .tool-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 14px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      transition: border-color 0.2s, background 0.2s;
+    }
+    .tool-card:hover { border-color: var(--border-hover); background: var(--surface2); }
+    .tool-card.high { border-left: 2px solid var(--accent); }
+
+    .tool-name { font-size: 14px; font-weight: 500; color: var(--text); }
+    .tool-cat {
+      font-size: 11px;
+      font-weight: 500;
+      padding: 3px 9px;
+      border-radius: 999px;
+      display: inline-block;
+      width: fit-content;
+    }
+    .cat-ai { background: rgba(200,169,126,0.12); color: var(--accent); }
+    .cat-edit { background: rgba(158,200,126,0.12); color: var(--accent3); }
+    .cat-audio { background: rgba(200,126,126,0.12); color: #c87e7e; }
+    .cat-vfx { background: rgba(181,126,200,0.12); color: #c87ec8; }
+    .cat-collab { background: rgba(126,159,200,0.12); color: var(--accent2); }
+
+    .tool-desc { font-size: 12px; color: var(--muted); line-height: 1.55; flex: 1; }
+    .tool-link {
+      font-size: 12px;
+      color: var(--accent2);
+      text-decoration: none;
+      margin-top: 2px;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .tool-link:hover { text-decoration: underline; }
+
+    .error-box {
+      padding: 14px 16px;
+      background: rgba(200,126,126,0.08);
+      border: 1px solid rgba(200,126,126,0.2);
+      border-radius: var(--radius-sm);
+      color: #c87e7e;
+      font-size: 14px;
+    }
+
+    /* FOOTER */
+    footer {
+      text-align: center;
+      padding: 2rem;
+      font-size: 12px;
+      color: var(--muted);
+      border-top: 1px solid var(--border);
+    }
+  </style>
+</head>
+<body>
+
+<nav>
+  <div class="logo">Cine<span>AI</span></div>
+  <span class="nav-tag">BCA Research Project — AI in Filmmaking</span>
+</nav>
+
+<div class="hero">
+  <p class="hero-eyebrow">Inclusivity through AI</p>
+  <h1>Turn your script into a <em>production toolkit</em></h1>
+  <p>Paste any film script or scene. Our AI reads the genre, mood, and visual demands — then suggests the best tools to bring it to life.</p>
+</div>
+
+<div class="main-card">
+  <div class="input-box">
+    <label class="input-label">Your script</label>
+    <textarea id="scriptInput" placeholder="Paste your script here...&#10;&#10;Example:&#10;INT. DIMLY LIT LAB - NIGHT&#10;DR. ARIA stares at a holographic display. Glowing data streams around her. A sudden alarm blares..."></textarea>
+    <div class="upload-row">
+      <button class="upload-btn" onclick="document.getElementById('fileInput').click()">+ Upload .txt file</button>
+      <span class="upload-note">Supported: .txt files</span>
+      <input type="file" id="fileInput" accept=".txt" style="display:none" onchange="handleFile(event)">
+    </div>
+  </div>
+
+  <div class="btn-row">
+    <button class="btn-primary" id="analyzeBtn" onclick="analyzeScript()">✦ Analyze script</button>
+    <button class="btn-secondary" onclick="loadSample()">Try a sample script</button>
+    <button class="btn-secondary" onclick="clearAll()">Clear</button>
+  </div>
+
+  <div class="loading" id="loading">
+    <div class="spinner"></div>
+    <span class="loading-text">Analyzing your script with Gemini AI...</span>
+  </div>
+
+  <div id="results"></div>
+</div>
+
+<footer>
+  CineAI — A BCA Research Project on AI Inclusivity in Filmmaking &nbsp;|&nbsp; Powered by Google Gemini
+</footer>
+
+<script>
+  const SAMPLES = [
+    `INT. FUTURISTIC CITY SKYLINE - DAWN
+
+Massive holographic billboards flicker above rain-soaked streets. KAEL (30s, cybernetic eye implant) runs through a narrow alley, clutching a stolen data chip.
+
+KAEL (V.O.)
+In 2087, privacy is a myth. Every face is tracked, every heartbeat logged.
+
+He ducks behind a dumpster as a drone sweeps overhead with a blinding search beam.
+
+EXT. ROOFTOP - CONTINUOUS
+
+Kael leaps across two buildings, lands hard. He pulls out a small holographic device, projects a map. The city pulses below him like a living machine.`,
+
+    `EXT. ENCHANTED FOREST - GOLDEN HOUR
+
+Shafts of magical light pierce through ancient, twisting trees. LUMA (10), a girl with glowing freckles, walks cautiously carrying a lantern.
+
+Fireflies dance around her. A TALKING OWL lands on a branch.
+
+OWL
+You have come far, little one. The Crystal Cave lies beyond the Whispering River.
+
+LUMA
+(wide-eyed)
+But grandma said no one ever returns from there.
+
+The forest floor glows softly. Flowers open as Luma passes.`,
+
+    `INT. SMALL APARTMENT - KITCHEN - MORNING
+
+PRIYA (28) burns toast, again. Her phone buzzes. She ignores it. Coffee drips slowly.
+
+Her roommate TARIQ (30) shuffles in, disheveled.
+
+TARIQ
+There is a very important email from your boss you have been ignoring for three days.
+
+PRIYA
+(deadpan)
+I prefer to ignore problems until they become crises.
+
+She finally checks her phone. Eyes widen.
+
+PRIYA (CONT'D)
+...or until they fire me apparently.`
+  ];
+
+  function loadSample() {
+    document.getElementById('scriptInput').value = SAMPLES[Math.floor(Math.random() * SAMPLES.length)];
+    document.getElementById('results').innerHTML = '';
+  }
+
+  function clearAll() {
+    document.getElementById('scriptInput').value = '';
+    document.getElementById('results').innerHTML = '';
+  }
+
+  function handleFile(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      document.getElementById('scriptInput').value = ev.target.result.slice(0, 3000);
+    };
+    reader.readAsText(file);
+  }
+
+  async function analyzeScript() {
+    const text = document.getElementById('scriptInput').value.trim();
+    if (!text || text.length < 30) {
+      document.getElementById('results').innerHTML = '<div class="error-box">Please paste a script of at least a few lines to analyze.</div>';
+      return;
+    }
+
+    const btn = document.getElementById('analyzeBtn');
+    btn.disabled = true;
+    document.getElementById('loading').classList.add('visible');
+    document.getElementById('results').innerHTML = '';
+
+    try {
+      const response = await fetch('/api/analyze', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ script: text })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok || data.error) {
+        throw new Error(data.error || 'Something went wrong');
+      }
+
+      renderResults(data);
+    } catch (err) {
+      document.getElementById('results').innerHTML = `<div class="error-box">Error: ${err.message}</div>`;
+    }
+
+    btn.disabled = false;
+    document.getElementById('loading').classList.remove('visible');
+  }
+
+  const catMap = {
+    "AI Generation": "cat-ai",
+    "Video Editing": "cat-edit",
+    "Audio & Music": "cat-audio",
+    "VFX & Motion": "cat-vfx",
+    "Collaboration": "cat-collab"
+  };
+
+  function renderResults(d) {
+    let html = '';
+
+    // Tags
+    html += `<div class="analysis-strip">
+      <div class="strip-label">Script analysis</div>
+      <div class="tags">
+        ${(d.genre||[]).map(g=>`<span class="tag tag-genre">${g}</span>`).join('')}
+        ${(d.mood||[]).map(m=>`<span class="tag tag-mood">${m}</span>`).join('')}
+        ${(d.features||[]).map(f=>`<span class="tag tag-feat">${f}</span>`).join('')}
+      </div>
+    </div>`;
+
+    if (d.summary) {
+      html += `<div class="summary-line">${d.summary}</div>`;
+    }
+
+    // Group by category
+    const cats = ["AI Generation", "Video Editing", "Audio & Music", "VFX & Motion", "Collaboration"];
+    const grouped = {};
+    (d.tools||[]).forEach(t => {
+      const c = t.category || "AI Generation";
+      if (!grouped[c]) grouped[c] = [];
+      grouped[c].push(t);
+    });
+
+    cats.forEach(cat => {
+      if (!grouped[cat] || grouped[cat].length === 0) return;
+      html += `<div class="section-head">${cat}</div><div class="tool-grid">`;
+      grouped[cat].forEach(t => {
+        const cc = catMap[cat] || 'cat-ai';
+        const high = t.relevance === 'high' ? ' high' : '';
+        html += `<div class="tool-card${high}">
+          <div class="tool-name">${t.name}</div>
+          <span class="tool-cat ${cc}">${cat}</span>
+          <div class="tool-desc">${t.description}</div>
+          ${t.url ? `<a class="tool-link" href="${t.url}" target="_blank" rel="noopener">Visit tool →</a>` : ''}
+        </div>`;
+      });
+      html += `</div>`;
+    });
+
+    document.getElementById('results').innerHTML = html;
+  }
+</script>
+</body>
+</html>
